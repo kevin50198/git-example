@@ -22,3 +22,4 @@ element = driver.find_element_by_name("accountPwd")
 element.send_keys("qaz123")
 
 element = driver.find_element_by_id("signin").click()
+
