@@ -49,9 +49,9 @@ def create_df(date,stock_no):
     s2['month'] = mlist  #新增月份欄位
     return s2
         
-listDji = ['2812']
+listDji = ['2330']
 for i in range(len(listDji)):
-    result = create_df('20190301', listDji[i])
+    result = create_df('20200301', listDji[i])
     print(result)
     
 print(result.groupby('month').close.count())  #每個月幾個營業日
