@@ -7,6 +7,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import re , os , time ,random ,string ,logging ,pytesseract ,requests
 
+#設定瀏覽器配置，取消'Chrome正在受到自動軟體的控制'的提示語
+option = webdriver.ChromeOptions()
+option.add_argument('disable-infobars')
+
 #截圖保存位置
 screenImg = "D:/Users/Stanhsu/Desktop/git-example/image/screenImg.png"
 
