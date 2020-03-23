@@ -56,4 +56,3 @@ for i in range(len(listDji)):
     
 print(result.groupby('month').close.count())  #每個月幾個營業日
 print(result.groupby('month').shares.sum())  #每個月累計成交股數
-
