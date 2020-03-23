@@ -16,20 +16,38 @@ option.add_argument('disable-infobars')
 screenImg = "D:/Users/Stanhsu/Desktop/git-example/image/screenImg.png"
 screenImg1 = "D:/Users/Stanhsu/Desktop/git-example/image/screenImg1.png"
 
+#logging級別NOTSET < DEBUG < INFO < WARNING < ERROR < CRITICAL
+logger = logging.getLogger("name")
+logger.setLevel(logging.DEBUG)
+
+# 建立一個filehandler來把日誌記錄在檔案裡，級別為info以上
+fh = logging.FileHandler("CNLogin.log")
+fh.setLevel(logging.INFO)
+
+# 建立一個streamhandler來把日誌打在CMD視窗上，級別為info以上
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+
+# 設定日誌格式
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+ch.setFormatter(formatter)
+fh.setFormatter(formatter)
+
+#將相應的handler新增在logger物件中
+logger.addHandler(ch)
+logger.addHandler(fh)
+
+#開始打日誌
+# logger.debug("debug message")
+logger.info("info message")
+# logger.warning("warn message")
+# logger.error("error message")
+# logger.critical("critical message")
+
 #打開網頁,最大化瀏覽器
 driver = webdriver.Chrome(options=option)
 driver.get("https://ku112.net")
 driver.maximize_window()
-
-#引入logging模組,設定基本的配置
-#basicConfig配置了level和format的訊息;Level配置為INFO訊息
-#指定了format格式的字串,包括asctime、name、levelname、message分别代表運行時間、模組名稱、日誌級別、日誌內容。
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
- 
-#logger.debug('Debugging')
-#logger.warning('Warning exists')
-#logger.info('Finish')
 
 #找到登入->點擊登入
 driver.find_element_by_id("loginbutton").click()
@@ -214,7 +232,7 @@ def is_imgs_similar(img1,img2):
     #param img2: 圖片2
     #return:  True 圖片相似 ; False 圖片不相似
 
-    return True if hamming_distance(phash(img1),phash(img2)) <= 1 else False
+    return True if hamming_distance(phash(img1),phash(img2)) <= 3 else False
 
 #比對在線客服圖片
 if __name__ == '__main__':
