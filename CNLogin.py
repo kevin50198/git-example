@@ -1,16 +1,16 @@
 # coding:utf-8
-from selenium import webdriver
 from functools import reduce
+from selenium import webdriver
 from PIL import Image , ImageEnhance
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import re , os , time ,string ,logging ,pytesseract ,requests
+import logging ,pytesseract ,requests ,time
 
-#設定瀏覽器配置,取消'Chrome正在受到自動軟體的控制'的提示語
-option = webdriver.ChromeOptions()
-option.add_argument('disable-infobars')
+options = webdriver.ChromeOptions()
+options.add_argument('--ignore-certificate-errors')
+options.add_argument('--ignore-ssl-errors')
 
 #截圖保存位置
 screenImg = "D:/Users/Stanhsu/Desktop/git-example/image/screenImg.png"
@@ -18,7 +18,7 @@ screenImg1 = "D:/Users/Stanhsu/Desktop/git-example/image/screenImg1.png"
 
 #logging級別NOTSET < DEBUG < INFO < WARNING < ERROR < CRITICAL
 logger = logging.getLogger("name")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 # 建立一個filehandler來把日誌記錄在檔案裡，級別為info以上
 fh = logging.FileHandler("CNLogin.log")
@@ -39,13 +39,13 @@ logger.addHandler(fh)
 
 #開始打日誌
 # logger.debug("debug message")
-logger.info("info message")
+# logger.info("info message")
 # logger.warning("warn message")
 # logger.error("error message")
 # logger.critical("critical message")
 
 #打開網頁,最大化瀏覽器
-driver = webdriver.Chrome(options=option)
+driver = webdriver.Chrome(options=options)
 driver.get("https://ku112.net")
 driver.maximize_window()
 
@@ -211,7 +211,7 @@ def phash(img):
     img = img.resize((8, 8), Image.ANTIALIAS).convert('L')
     avg = reduce(lambda x, y: x + y, img.getdata()) / 64.
     hash_value=reduce(lambda x, y: x | (y[1] << y[0]), enumerate(map(lambda i: 0 if i < avg else 1, img.getdata())), 0)
-    print(hash_value)
+    # print(hash_value)
     return hash_value
 
 #計算漢明距離:
@@ -222,7 +222,7 @@ def hamming_distance(a, b):
     #return: 返回兩個圖片hash值的漢明距離
 
     hm_distance=bin(a ^ b).count('1')
-    print(hm_distance)
+    # print(hm_distance)
     return hm_distance
 
 #計算兩個圖片是否相似:
