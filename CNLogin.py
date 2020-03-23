@@ -3,11 +3,10 @@ from selenium import webdriver
 from functools import reduce
 from PIL import Image , ImageEnhance
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import re , os , time ,random ,string ,logging ,pytesseract ,requests
+import re , os , time ,string ,logging ,pytesseract ,requests
 
 #設定瀏覽器配置,取消'Chrome正在受到自動軟體的控制'的提示語
 option = webdriver.ChromeOptions()
@@ -32,19 +31,26 @@ logger = logging.getLogger(__name__)
 #logger.warning('Warning exists')
 #logger.info('Finish')
 
-#找到登入->點擊登入->輸入內容
+#找到登入->點擊登入
 driver.find_element_by_id("loginbutton").click()
 
+#輸入帳號/密碼
 element = driver.find_element_by_id("accountId")
-element.send_keys("F62127")
-
+element.send_keys("F62126")
 element = driver.find_element_by_name("accountPwd")
 element.send_keys("qaz123")
 
-logger.info('Before Login Time') #紀錄登錄前的時間
+#紀錄點擊登錄前的時間
+logger.info('Before Login Time')
+
+#點擊登入
 driver.find_element_by_id("signin").click()
 
+#等待首頁平轉轉帳渲染
+element = WebDriverWait(driver, 10).until(
+EC.element_to_be_clickable((By.CSS_SELECTOR,"body > div.toper > div > div.ng-scope > div.memberArea.ng-scope > ul > li:nth-child(5) > a")))
 
+#此function為點擊平台轉帳
 def tryclick(driver, selector, count=0): #保護機制,以防無法定位到還沒渲染出來的元素
     try:
         element = driver.find_element_by_css_selector(selector)
@@ -59,12 +65,15 @@ def tryclick(driver, selector, count=0): #保護機制,以防無法定位到還�
 
 #首頁點擊平台轉帳
 tryclick(driver, "body > div.toper > div > div.ng-scope > div.memberArea.ng-scope > ul > li:nth-child(5) > a")
-logger.info('After Login Time / Open PlatfromTransfer Time') #紀錄點擊平台轉帳時間
+
+#紀錄點擊平台轉帳時間
+logger.info('After Login Time / Open PlatfromTransfer Time')
 
 #找到平台轉帳視窗,並切換過去
 for winHandle in driver.window_handles:
 	driver.switch_to.window(winHandle)
 
+#此function為平台轉帳轉出帳戶欄位
 def tryclick1(driver, selector, count=0): #保護機制,以防無法定位到還沒渲染出來的元素
     try:
         element = driver.find_element_by_css_selector(selector)
@@ -77,6 +86,7 @@ def tryclick1(driver, selector, count=0): #保護機制,以防無法定位到還
         else:
             print("cannot locate transferout")
 
+#此function為平台轉帳轉入帳戶欄位
 def tryclick2(driver, selector, count=0): #保護機制,以防無法定位到還沒渲染出來的元素
     try:
         element = driver.find_element_by_css_selector(selector)
@@ -96,8 +106,9 @@ tryclick1(driver, "#tbPlatformTransfer > tbody > tr > td:nth-child(2) > div > ul
 #轉入帳戶->選擇第二項(KU體育)
 tryclick2(driver, "#inAccount")
 tryclick2(driver, "#inAccount > option:nth-child(2)")
-logger.info('Close PlatfromTransfer Time / OpenLiveService Time') #紀錄選擇轉出帳戶/轉入帳戶完的時間
-time.sleep(0.5)
+
+#紀錄選擇轉出帳戶/轉入帳戶後的時間
+logger.info('Close PlatfromTransfer Time / OpenLiveService Time')
 
 #關閉平台轉帳視窗
 driver.close()
@@ -106,15 +117,44 @@ driver.close()
 for parentHandle in driver.window_handles:
 	driver.switch_to.window(parentHandle)
 
-driver.find_element_by_xpath("/html/body/div[9]/div[1]/ul/li[1]/div").click() #點擊在線客服
+#點擊在線客服
+driver.find_element_by_xpath("/html/body/div[9]/div[1]/ul/li[1]/div").click()
 
 #找到在線客服視窗,並切換過去
 for winHandle in driver.window_handles:
 	driver.switch_to.window(winHandle)
 
-time.sleep(0.5)
+#等待在線客服視窗渲染
+element = WebDriverWait(driver, 10).until(
+EC.element_to_be_clickable((By.XPATH,"//*[@id='main-block']/ul[1]")))
 
+#此function為在線客服截圖與照片處理
+def code_func():
+	#照片url位址
+    imgsrc = driver.find_element_by_xpath("//*[@id='main-block']/ul[1]").get_attribute('src')
 
+	#截畫面
+    driver.get_screenshot_as_file(screenImg)
+
+	#定位圖片位置及大小
+    location = driver.find_element_by_xpath("//*[@id='main-block']/ul[1]").location
+    size = driver.find_element_by_xpath("//*[@id='main-block']/ul[1]").size
+    left = location['x']
+    top =  location['y']
+    right = location['x'] + size['width']
+    bottom = location['y'] + size['height']
+	#從讀取照片，截取圖片位置再次保存
+    time.sleep(0.5)
+    img = Image.open(screenImg).crop((left,top,right,bottom))
+    img = img.convert('L') 			 #轉換模式：L | RGB
+    img = ImageEnhance.Contrast(img) #增強對比度
+    img = img.enhance(2)			 #增加飽和度
+    img.save(screenImg)
+	#再次讀取與識別圖片
+	#img = Image.open(screenImg)
+	#code = pytesseract.image_to_string(img,lang='eng',config='--psm 10 --oem 3 -c tessedit_char_whitelist=0123456789')
+
+#此function為3D電子截圖與照片處理
 def code_func1():
 	#照片url位址
     imgsrc = driver.find_element_by_xpath("//*[@id='launcherMain']").get_attribute('src')
@@ -176,6 +216,7 @@ def is_imgs_similar(img1,img2):
 
     return True if hamming_distance(phash(img1),phash(img2)) <= 1 else False
 
+#比對在線客服圖片
 if __name__ == '__main__':
 
     #讀取圖片
@@ -186,7 +227,9 @@ if __name__ == '__main__':
     result=is_imgs_similar(target_pic, sensitive_pic)
 
     print(result)
-    logger.info('Compare Time') #紀錄比對完的時間
+
+    #紀錄照片比對完的時間
+    logger.info('Compare Time')
 
 #關閉在線客服視窗
 driver.close()
@@ -199,6 +242,11 @@ for parentHandle in driver.window_handles:
 driver.find_element_by_xpath("//*[@id='MainMenu']/div/div[1]/div[2]/ul/li[7]/a").click()
 driver.find_element_by_xpath("//*[@id='MainMenu']/div/div[1]/div[2]/ul/li[7]/div/div[2]/div[4]/div[2]/div[2]").click()
 
+#等待快速轉帳視窗渲染
+element = WebDriverWait(driver, 10).until(
+EC.element_to_be_clickable((By.CSS_SELECTOR,"#FastTransfer > form > div.popUp_in > div > div > input.FT_button_w50L")))
+
+#此function為抓取快速轉帳
 def tryclick3(driver, Xpath, count=0):#保護機制,以防無法定位到還沒渲染出來的元素
     try:
         element = driver.find_element_by_xpath(Xpath)
@@ -212,8 +260,8 @@ def tryclick3(driver, Xpath, count=0):#保護機制,以防無法定位到還沒�
             print("cannot locate FastTransfer")
 
 tryclick3(driver, "//*[@id='FastTransfer']/form/div[2]/div")
-time.sleep(0.5)
 
+#此function為進入3D電子遊戲
 def tryclick4(driver, selector, count=0): #保護機制,以防無法定位到還沒渲染出來的元素
     try:
         element = driver.find_element_by_css_selector(selector)
@@ -227,13 +275,15 @@ def tryclick4(driver, selector, count=0): #保護機制,以防無法定位到還
             print("cannot locate Enter3Dgame")
 
 tryclick4(driver, "#FastTransfer > form > div.popUp_in > div > div > input.FT_button_w50L")
-logger.info('Open 3Dgame Time') #紀錄開啟3D電子的時間
-time.sleep(0.5)
+
+#紀錄開啟3D電子的時間
+logger.info('Open 3Dgame Time')
 
 #找到3D電子視窗,並切換過去
 for winHandle in driver.window_handles:
 	driver.switch_to.window(winHandle)
 
+#此function為定位3D電子輪播圖
 def tryclick5(driver, Xpath, count=0): #保護機制,以防無法定位到還沒渲染出來的元素
     try:
         element = driver.find_element_by_xpath(Xpath)
@@ -247,8 +297,11 @@ def tryclick5(driver, Xpath, count=0): #保護機制,以防無法定位到還沒
             print("cannot locate Enter3Dgame")
 
 tryclick5(driver, "//*[@id='canvas_0002']")
+
+#3D電子截圖
 code_func1()
 
+#比對3D電子圖片
 if __name__ == '__main__':
 
     #讀取圖片
@@ -259,5 +312,45 @@ if __name__ == '__main__':
     result=is_imgs_similar(target_pic, sensitive_pic)
     print(result)
 
-logger.info('Show Carousel Time') #紀錄輪播圖顯示的時間
-time.sleep(0.5)
+#紀錄輪播圖顯示的時間
+logger.info('Show Carousel Time')
+
+#關閉3D電子視窗
+driver.close()
+
+#找到原視窗,並切換過去
+for parentHandle in driver.window_handles:
+	driver.switch_to.window(parentHandle)
+
+#找到彩票遊戲->點擊全球
+driver.find_element_by_xpath("//*[@id='MainMenu']/div/div[1]/div[2]/ul/li[9]/a").click()
+driver.find_element_by_xpath("//*[@id='BB_Ball_loto_maintain']/div[3]/div").click()
+
+#等待快速轉帳視窗渲染
+element = WebDriverWait(driver, 10).until(
+EC.element_to_be_clickable((By.CSS_SELECTOR,"#FastTransfer > form > div.popUp_in > div > div > input.FT_button_w50L")))
+
+#為抓取快速轉帳
+tryclick3(driver, "//*[@id='FastTransfer']/form/div[2]/div")
+
+#為進入全球彩票
+tryclick4(driver, "#FastTransfer > form > div.popUp_in > div > div > input.FT_button_w50L")
+
+#找到全球彩票視窗,並切換過去
+for winHandle in driver.window_handles:
+	driver.switch_to.window(winHandle)
+
+#等待全球彩票金額渲染
+element1 = WebDriverWait(driver, 10).until(
+EC.text_to_be_present_in_element((By.ID,"divBalance"),"12"))
+print("result: ", element1)
+
+#關閉全球彩票視窗
+driver.close()
+
+#找到原視窗,並切換過去
+for parentHandle in driver.window_handles:
+	driver.switch_to.window(parentHandle)
+
+#關閉視窗
+driver.close()
