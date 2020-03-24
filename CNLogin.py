@@ -383,6 +383,6 @@ def Auto():
 
 #執行5次
 count = 0
-while count < 6:
+while count < 5:
   Auto()
   count = count + 1
