@@ -1,5 +1,6 @@
 # coding:utf-8
 from functools import reduce
+from openpyxl import Workbook
 from selenium import webdriver
 from PIL import Image , ImageEnhance
 from selenium.webdriver.common.by import By
@@ -20,11 +21,11 @@ screenImg1 = "D:/Users/Stanhsu/Desktop/git-example/image/screenImg1.png"
 logger = logging.getLogger("name")
 logger.setLevel(logging.INFO)
 
-# 建立一個filehandler來把日誌記錄在檔案裡，級別為info以上
+# 建立一個filehandler來把日誌記錄在檔案裡,級別為info以上
 fh = logging.FileHandler("CNLogin.log")
 fh.setLevel(logging.INFO)
 
-# 建立一個streamhandler來把日誌打在CMD視窗上，級別為info以上
+# 建立一個streamhandler來把日誌打在CMD視窗上,級別為info以上
 ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
 
@@ -37,7 +38,7 @@ fh.setFormatter(formatter)
 logger.addHandler(ch)
 logger.addHandler(fh)
 
-#開始打日誌
+# 日誌顯示
 # logger.debug("debug message")
 # logger.info("info message")
 # logger.warning("warn message")
@@ -49,12 +50,13 @@ logger.addHandler(fh)
 #https://ku.ku5168.com/
 #https://ku.ku9688.net/
 #https://ku.ku997.com/
+
+#ku測速一round
 def Auto():
     #打開網頁,最大化瀏覽器
     driver = webdriver.Chrome(options=options)
     driver.get("https://ku.ku997.com/")
-    logger.info('--------------------------')
-    logger.info('Show Home Time')
+    print("---------------------------------------------------------------")
     driver.maximize_window()
 
     #找到登入->點擊登入
@@ -76,6 +78,17 @@ def Auto():
     element = WebDriverWait(driver, 10).until(
     EC.element_to_be_clickable((By.CSS_SELECTOR,"body > div.toper > div > div.ng-scope > div.memberArea.ng-scope > ul > li:nth-child(5) > a")))
 
+    #等待首頁存款渲染
+    element = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.CSS_SELECTOR,"body > div.toper > div > div.ng-scope > div.memberArea.ng-scope > ul > li:nth-child(6) > a")))
+
+    #等待首頁提款渲染
+    element = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.CSS_SELECTOR,"body > div.toper > div > div.ng-scope > div.memberArea.ng-scope > ul > li:nth-child(7) > a")))
+
+    #紀錄點擊平台轉帳時間
+    logger.info('After Login Time / Open PlatfromTransfer Time')
+
     #此function為點擊平台轉帳
     def tryclick(driver, selector, count=0): #保護機制,以防無法定位到還沒渲染出來的元素
         try:
@@ -91,9 +104,6 @@ def Auto():
 
     #首頁點擊平台轉帳
     tryclick(driver, "body > div.toper > div > div.ng-scope > div.memberArea.ng-scope > ul > li:nth-child(5) > a")
-
-    #紀錄點擊平台轉帳時間
-    logger.info('After Login Time / Open PlatfromTransfer Time')
 
     #找到平台轉帳視窗,並切換過去
     for winHandle in driver.window_handles:
@@ -308,24 +318,12 @@ def Auto():
     for winHandle in driver.window_handles:
         driver.switch_to.window(winHandle)
 
-    #此function為定位3D電子輪播圖
-    def tryclick5(driver, Xpath, count=0): #保護機制,以防無法定位到還沒渲染出來的元素
-        try:
-            element = driver.find_element_by_xpath(Xpath)
-            element.click()
-        except:
-            time.sleep(0.5)
-            count+=0.5
-            if(count < 15):
-                tryclick5(driver, Xpath, count)
-            else:
-                print("cannot locate Enter3Dgame")
+    #等待3D電子輪播圖渲染
+    element = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.XPATH,"//*[@id='canvas_0002']")))
 
-    tryclick5(driver, "//*[@id='canvas_0002']")
-
-    #紀錄輪播圖顯示的時間
+    #紀錄輪播圖渲染完時間
     logger.info('Show Carousel Time')
-    logger.info('--------------------------')
 
     #3D電子截圖
     code_func1()
@@ -378,11 +376,23 @@ def Auto():
     for parentHandle in driver.window_handles:
         driver.switch_to.window(parentHandle)
 
+    #點擊登出
+    driver.find_element_by_xpath("/html/body/div[1]/div/div[3]/div[2]/ul/li[9]/a").click()
+
+    #等待首頁平台轉帳渲染
+    element = WebDriverWait(driver, 15).until(
+    EC.element_to_be_clickable((By.CSS_SELECTOR,"body > div.toper > div > div.ng-scope > div.memberArea.ng-scope > ul > li:nth-child(5) > a")))
+
+    #紀錄登錄渲染時間
+    logger.info('Show Home Time')
+    print("---------------------------------------------------------------")
+
     #關閉視窗
     driver.close()
 
-#執行5次
-count = 0
-while count < 5:
-  Auto()
-  count = count + 1
+Auto()
+# #執行5次
+# count = 0
+# while count < 5:
+#   Auto()
+#   count = count + 1
