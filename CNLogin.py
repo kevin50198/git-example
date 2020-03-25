@@ -1,6 +1,5 @@
 # coding:utf-8
 from functools import reduce
-from openpyxl import Workbook
 from selenium import webdriver
 from PIL import Image , ImageEnhance
 from selenium.webdriver.common.by import By
@@ -8,7 +7,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import logging ,pytesseract ,requests ,time
-
+ 
 options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors')
@@ -53,10 +52,11 @@ logger.addHandler(fh)
 
 #ku測速一round
 def Auto():
+
     #打開網頁,最大化瀏覽器
     driver = webdriver.Chrome(options=options)
     driver.get("https://ku.ku997.com/")
-    print("---------------------------------------------------------------")
+    logger.info('---------------------------------------------------------------')
     driver.maximize_window()
 
     #找到登入->點擊登入
@@ -377,15 +377,11 @@ def Auto():
         driver.switch_to.window(parentHandle)
 
     #點擊登出
-    driver.find_element_by_xpath("/html/body/div[1]/div/div[3]/div[2]/ul/li[9]/a").click()
-
-    #等待首頁平台轉帳渲染
-    element = WebDriverWait(driver, 15).until(
-    EC.element_to_be_clickable((By.CSS_SELECTOR,"body > div.toper > div > div.ng-scope > div.memberArea.ng-scope > ul > li:nth-child(5) > a")))
+    driver.find_element_by_css_selector("body > div.toper > div > div.ng-scope > div.memberArea.ng-scope > ul > li:nth-child(9) > a > span > img").click()
 
     #紀錄登錄渲染時間
     logger.info('Show Home Time')
-    print("---------------------------------------------------------------")
+    logger.info('---------------------------------------------------------------')
 
     #關閉視窗
     driver.close()
