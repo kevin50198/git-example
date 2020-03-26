@@ -56,7 +56,7 @@ def Auto():
     #打開網頁,最大化瀏覽器
     driver = webdriver.Chrome(options=options)
     driver.get("https://ku.ku997.com/")
-    logger.info('---------------------------------------------------------------')
+    logger.info('----------------------------------------------------------')
     driver.maximize_window()
 
     #找到登入->點擊登入
@@ -75,15 +75,15 @@ def Auto():
     driver.find_element_by_id("signin").click()
 
     #等待首頁平台轉帳渲染
-    element = WebDriverWait(driver, 10).until(
+    element = WebDriverWait(driver, 15).until(
     EC.element_to_be_clickable((By.CSS_SELECTOR,"body > div.toper > div > div.ng-scope > div.memberArea.ng-scope > ul > li:nth-child(5) > a")))
 
     #等待首頁存款渲染
-    element = WebDriverWait(driver, 10).until(
+    element = WebDriverWait(driver, 15).until(
     EC.element_to_be_clickable((By.CSS_SELECTOR,"body > div.toper > div > div.ng-scope > div.memberArea.ng-scope > ul > li:nth-child(6) > a")))
 
     #等待首頁提款渲染
-    element = WebDriverWait(driver, 10).until(
+    element = WebDriverWait(driver, 15).until(
     EC.element_to_be_clickable((By.CSS_SELECTOR,"body > div.toper > div > div.ng-scope > div.memberArea.ng-scope > ul > li:nth-child(7) > a")))
 
     #紀錄點擊平台轉帳時間
@@ -159,6 +159,9 @@ def Auto():
     #找到在線客服視窗,並切換過去
     for winHandle in driver.window_handles:
         driver.switch_to.window(winHandle)
+
+    #顯示當前在線客服的url
+    print (driver.current_url)
 
     #等待在線客服視窗渲染
     element = WebDriverWait(driver, 10).until(
@@ -264,7 +267,7 @@ def Auto():
 
         #比較圖片相似度
         result=is_imgs_similar(target_pic, sensitive_pic)
-        print("result: ", result)
+        print("CustomerService Compare Result : ", result)
 
     #關閉在線客服視窗
     driver.close()
@@ -319,8 +322,12 @@ def Auto():
         driver.switch_to.window(winHandle)
 
     #等待3D電子輪播圖渲染
-    element = WebDriverWait(driver, 10).until(
-    EC.element_to_be_clickable((By.XPATH,"//*[@id='canvas_0002']")))
+    try:
+        element = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH,"//*[@id='canvas_0002']")))
+    except:
+        element = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH,"//*[@id='canvas_1054']"))) 
 
     #紀錄輪播圖渲染完時間
     logger.info('Show Carousel Time')
@@ -337,7 +344,7 @@ def Auto():
 
         #比較圖片相似度
         result=is_imgs_similar(target_pic, sensitive_pic)
-        print("result: ", result)
+        print("3Dgame Compare Result : ", result)
 
     #關閉3D電子視窗
     driver.close()
@@ -367,7 +374,7 @@ def Auto():
     #等待全球彩票金額渲染
     element1 = WebDriverWait(driver, 10).until(
     EC.text_to_be_present_in_element((By.ID,"divBalance"),"12"))
-    print("result: ", element1)
+    print("Lottery Money Catch Result : ", element1)
 
     #關閉全球彩票視窗
     driver.close()
@@ -380,8 +387,7 @@ def Auto():
     driver.find_element_by_css_selector("body > div.toper > div > div.ng-scope > div.memberArea.ng-scope > ul > li:nth-child(9) > a > span > img").click()
 
     #紀錄登錄渲染時間
-    logger.info('Show Home Time')
-    logger.info('---------------------------------------------------------------')
+    logger.info('----------------------------------------------------------')
 
     #關閉視窗
     driver.close()
