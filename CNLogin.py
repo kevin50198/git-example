@@ -3,11 +3,12 @@ from functools import reduce
 from selenium import webdriver
 from PIL import Image , ImageEnhance
 from selenium.webdriver.common.by import By
+from openpyxl.utils import get_column_letter
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import logging ,pytesseract ,requests ,time
- 
+import logging ,pytesseract ,requests ,time ,openpyxl ,codecs
+
 options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors')
@@ -16,33 +17,12 @@ options.add_argument('--ignore-ssl-errors')
 screenImg = "D:/Users/Stanhsu/Desktop/git-example/image/screenImg.png"
 screenImg1 = "D:/Users/Stanhsu/Desktop/git-example/image/screenImg1.png"
 
-#logging級別NOTSET < DEBUG < INFO < WARNING < ERROR < CRITICAL
-logger = logging.getLogger("name")
-logger.setLevel(logging.INFO)
-
-# 建立一個filehandler來把日誌記錄在檔案裡,級別為info以上
-fh = logging.FileHandler("CNLogin.log")
-fh.setLevel(logging.INFO)
-
-# 建立一個streamhandler來把日誌打在CMD視窗上,級別為info以上
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-
-# 設定日誌格式
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-ch.setFormatter(formatter)
-fh.setFormatter(formatter)
-
-#將相應的handler新增在logger物件中
-logger.addHandler(ch)
-logger.addHandler(fh)
-
-# 日誌顯示
-# logger.debug("debug message")
-# logger.info("info message")
-# logger.warning("warn message")
-# logger.error("error message")
-# logger.critical("critical message")
+#設定log格式
+formatter = logging.basicConfig(filename='CNLogin.log',
+                                level=logging.INFO ,
+                                format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s', 
+                                datefmt='%Y/%m/%d %I:%M:%S')
+logger = logging.getLogger(__name__)
 
 #https://ku.ku665.net/
 #https://ku.ku3699.net/
@@ -50,7 +30,7 @@ logger.addHandler(fh)
 #https://ku.ku9688.net/
 #https://ku.ku997.com/
 
-#ku測速一round
+#ku測速一回
 def Auto():
 
     #打開網頁,最大化瀏覽器
@@ -161,7 +141,7 @@ def Auto():
         driver.switch_to.window(winHandle)
 
     #顯示當前在線客服的url
-    print (driver.current_url)
+    logger.info('%s',driver.current_url)
 
     #等待在線客服視窗渲染
     element = WebDriverWait(driver, 10).until(
@@ -267,7 +247,7 @@ def Auto():
 
         #比較圖片相似度
         result=is_imgs_similar(target_pic, sensitive_pic)
-        print("CustomerService Compare Result : ", result)
+        logger.info('CustomerService Compare Result : %s',result)
 
     #關閉在線客服視窗
     driver.close()
@@ -344,7 +324,7 @@ def Auto():
 
         #比較圖片相似度
         result=is_imgs_similar(target_pic, sensitive_pic)
-        print("3Dgame Compare Result : ", result)
+        logger.info('3Dgame Compare Result : %s',result)
 
     #關閉3D電子視窗
     driver.close()
@@ -374,7 +354,7 @@ def Auto():
     #等待全球彩票金額渲染
     element1 = WebDriverWait(driver, 10).until(
     EC.text_to_be_present_in_element((By.ID,"divBalance"),"12"))
-    print("Lottery Money Catch Result : ", element1)
+    logger.info('Lottery Money Catch Result : %s',element1)
 
     #關閉全球彩票視窗
     driver.close()
@@ -392,9 +372,46 @@ def Auto():
     #關閉視窗
     driver.close()
 
+    #txt檔轉xlsx檔
+    def txt_to_xlsx(filename,outfile):
+        fr = codecs.open(filename,'r')
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws = wb.create_sheet()
+        ws.title = 'Sheet1'
+        row = 0
+        for line in fr:
+            row +=1
+            line = line.strip()
+            line = line.split('\t')
+            col = 0
+            for j in range(len(line)):
+                col +=1
+                #print (line[j])
+                ws.cell(column = col,row = row,value = line[j].format(get_column_letter(col)))
+        wb.save(outfile)
+
+    #讀取xlsx內容   
+    def read_xlsx(filename):
+        
+        #載入文件
+        wb = openpyxl.load_workbook(filename)
+
+        #獲取sheet1工作表
+        ws = wb.get_sheet_by_name('Sheet1')
+
+        #按行讀取
+        for row in ws.rows:
+            for cell in row:
+                print (cell.value)
+        #按列讀取
+        for col in ws.columns:
+            for cell in col:
+                print (cell.value)
+     
+    if __name__=='__main__':
+        inputfileTxt = 'CNLogin.log'
+        outfileExcel = 'CNLogin.xlsx'
+        txt_to_xlsx(inputfileTxt,outfileExcel)
+
 Auto()
-# #執行5次
-# count = 0
-# while count < 5:
-#   Auto()
-#   count = count + 1
