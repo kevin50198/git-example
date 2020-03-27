@@ -7,7 +7,7 @@ from openpyxl.utils import get_column_letter
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import logging ,pytesseract ,requests ,time ,openpyxl ,codecs
+import logging ,pytesseract ,requests ,time ,openpyxl ,codecs ,xlwt
 
 options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
@@ -36,7 +36,7 @@ def Auto():
     #打開網頁,最大化瀏覽器
     driver = webdriver.Chrome(options=options)
     driver.get("https://ku.ku997.com/")
-    logger.info('----------------------------------------------------------')
+    logger.info('*******************************************************')
     driver.maximize_window()
 
     #找到登入->點擊登入
@@ -367,51 +367,37 @@ def Auto():
     driver.find_element_by_css_selector("body > div.toper > div > div.ng-scope > div.memberArea.ng-scope > ul > li:nth-child(9) > a > span > img").click()
 
     #紀錄登錄渲染時間
-    logger.info('----------------------------------------------------------')
+    logger.info('*******************************************************')
 
     #關閉視窗
     driver.close()
 
-    #txt檔轉xlsx檔
-    def txt_to_xlsx(filename,outfile):
-        fr = codecs.open(filename,'r')
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws = wb.create_sheet()
-        ws.title = 'Sheet1'
-        row = 0
-        for line in fr:
-            row +=1
-            line = line.strip()
-            line = line.split('\t')
-            col = 0
-            for j in range(len(line)):
-                col +=1
-                #print (line[j])
-                ws.cell(column = col,row = row,value = line[j].format(get_column_letter(col)))
-        wb.save(outfile)
+    #txt轉xls
+    def txt_xls(filename,xlsname):
+        try:
+            f = open(filename)
+            xls = xlwt.Workbook()
+            #產生excel
+            sheet = xls.add_sheet('sheet',cell_overwrite_ok=True)
+            #在excel開始寫的位置
+            x = 0
 
-    #讀取xlsx內容   
-    def read_xlsx(filename):
-        
-        #載入文件
-        wb = openpyxl.load_workbook(filename)
+            while True:     #循環讀取txt內容
+                line = f.readline() #一行一行的讀取
+                if not line:    #如果沒有內容則退出
+                    break
+                for i in range(len(line.split('-'))):   #以"-"為分隔
+                    item = line.split('-')[i]
+                    sheet.write(x,i,item)
+                x += 1  #另一行
+            f.close()
+            xls.save(xlsname)
+        except:
+            raise
 
-        #獲取sheet1工作表
-        ws = wb.get_sheet_by_name('Sheet1')
-
-        #按行讀取
-        for row in ws.rows:
-            for cell in row:
-                print (cell.value)
-        #按列讀取
-        for col in ws.columns:
-            for cell in col:
-                print (cell.value)
-     
-    if __name__=='__main__':
-        inputfileTxt = 'CNLogin.log'
-        outfileExcel = 'CNLogin.xlsx'
-        txt_to_xlsx(inputfileTxt,outfileExcel)
+    if __name__ == '__main__':
+        filename = 'D:/Users/Stanhsu/Desktop/git-example/CNLogin.log'
+        xlsname = 'D:/Users/Stanhsu/Desktop/git-example/CNLogin.xls'
+        txt_xls(filename,xlsname)
 
 Auto()
